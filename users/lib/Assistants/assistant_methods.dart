@@ -12,6 +12,8 @@ import 'package:users/models/user_model.dart';
 
 import '../global/map_key.dart';
 import '../infoHandler/app_info.dart';
+import '../models/address.dart';
+import '../models/allUsers.dart';
 import '../models/direction_details_info.dart';
 import '../models/directions.dart';
 import 'package:http/http.dart' as http;
@@ -29,8 +31,55 @@ class AssistantMethods {
     });
   }
 
+  //--------------------------------------------------------------------------------------
+
+  static Future<String> searchCoordinateAddress(
+      Position position, context) async {
+    String placeAddress = "";
+    // ignore: unused_local_variable
+    var index = 0;
+    String url =
+        "https://maps.googleapis.com/maps/api/geocode/json?latlng=${position.latitude},${position.longitude}&key=$mapKey";
+    //var response = await RequestAssistant.getRequest(url);
+    if (
+    //response != 'failed'
+    true) {
+      if (placeAddress != "failed") {
+        placeAddress = "${position.longitude},${position.latitude},";
+      }
+      Address userPickUpAddress = new Address();
+      userPickUpAddress.longitude = position.longitude;
+      userPickUpAddress.latitude = position.altitude;
+      userPickUpAddress.placeName = placeAddress;
+
+      //Provider.of<AppData>(context, listen: false)
+      //    .updatePickUpLocationAddress(userPickUpAddress);
+    }
+
+    return placeAddress;
+  }
+
+  //--------------------------------------------------------------------------------------
+
+  static void getCurrentOnlineUserInfo() async {
+    firebaseUser = await FirebaseAuth.instance.currentUser;
+    String? userId = firebaseUser?.uid;
+    if (userId != null) {
+      DatabaseReference reference =
+      FirebaseDatabase.instance.reference().child("users").child(userId);
+      reference.once().then((DatabaseEvent event) {
+        DataSnapshot dataSnapshot = event.snapshot;
+        if (dataSnapshot.value != null) {
+          userCurrentInfo = Users.fromSnapshot(dataSnapshot);
+        }
+      });
+    }
+  }
+
+
   static Future<String> searchAddressForGeographicCoOrdinates(
       Position position, context) async {
+
     String apiUrl =
         "https://maps.googleapis.com/maps/api/geocode/json?latlng=${position.latitude},${position.longitude}&key=$mapKey";
     String humanReadableAddress = "";
